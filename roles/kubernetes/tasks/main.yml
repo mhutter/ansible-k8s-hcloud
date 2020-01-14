@@ -1,0 +1,70 @@
+---
+- name: Create directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/systemd/system/kubelet.service.d
+    - /etc/systemd/system/docker.service.d
+
+- name: Prepare Cloud Controller Manager
+  copy:
+    dest: /etc/systemd/system/kubelet.service.d/20-hetzner-cloud.conf
+    content: |
+      [Service]
+      Environment="KUBELET_EXTRA_ARGS=--cloud-provider=external"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Prepare Docker cgroup driver
+  copy:
+    dest: /etc/systemd/system/docker.service.d/00-cgroup-systemd.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Add APT GPG keys
+  apt_key:
+    url: '{{ item }}'
+  loop:
+    - https://download.docker.com/linux/ubuntu/gpg
+    - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add Repositories
+  copy:
+    dest: /etc/apt/sources.list.d/docker-and-kubernetes.list
+    content: |
+      deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+      deb http://packages.cloud.google.com/apt/ kubernetes-xenial main
+    owner: root
+    group: root
+    mode: '0644'
+  register: r_add_repos
+
+- name: Refresh package caches
+  apt:
+    update_cache: true
+  when: r_add_repos is changed
+
+- name: Install docker-ce kubeadm kubectl kubelet
+  package:
+    name: docker-ce,kubeadm,kubectl,kubelet
+
+- name: Set required sysctl configs
+  sysctl:
+    name: '{{ item }}'
+    value: '1'
+    sysctl_set: yes
+  loop:
+    - net.bridge.bridge-nf-call-iptables
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.default.forwarding
+  ignore_errors: true

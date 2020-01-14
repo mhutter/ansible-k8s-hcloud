@@ -1,0 +1,10 @@
+---
+- name: Generate Kubernetes manifests
+  template:
+    src: "{{ item }}.yml"
+    dest: "/root/{{ item }}.yml"
+    owner: root
+    group: root
+    mode: '0600'
+  loop:
+    - hcloud-config

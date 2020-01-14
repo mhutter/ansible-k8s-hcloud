@@ -1,0 +1,14 @@
+---
+masters:
+  hosts:
+    master-99d4:
+      ansible_host: 0.0.0.0
+
+workers:
+  hosts:
+    worker-2c22:
+      ansible_host: 0.0.0.0
+    worker-91fd:
+      ansible_host: 0.0.0.0
+    worker-b2d2:
+      ansible_host: 0.0.0.0

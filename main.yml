@@ -1,0 +1,17 @@
+---
+- hosts: workers
+  gather_facts: false
+  roles:
+    - role: floating_ip
+      tags: floating_ip
+
+- hosts: masters
+  gather_facts: false
+  roles:
+    - role: master
+      tags: master
+
+- hosts: all
+  gather_facts: false
+  roles:
+    - kubernetes

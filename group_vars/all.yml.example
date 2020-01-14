@@ -1,0 +1,4 @@
+---
+hcloud_floating_ip: 'Get from ./setup.sh'
+hcloud_token: 'Get from https://console.hetzner.cloud/'
+hcloud_network_name: kubernetes

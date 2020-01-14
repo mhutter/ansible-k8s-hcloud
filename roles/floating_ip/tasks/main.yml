@@ -1,0 +1,10 @@
+---
+- name: Configure floating IP
+  template:
+    dest: /etc/network/interfaces.d/60-floating-ip.cfg
+    src: floating-ip.cfg
+    mode: '0644'
+    owner: root
+    group: root
+  notify:
+    - restart networking

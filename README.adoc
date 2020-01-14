@@ -1,0 +1,51 @@
+= Kubernetes on Hetzner Cloud setup =
+
+Ansible Playbook & helper scripts to set up Kubernetes on Hetzner Cloud.
+
+References:
+- https://community.hetzner.com/tutorials/install-kubernetes-cluster
+
+== Preparation
+
+1. `cp hosts.yml{.example,}`
+2. `cp group_vars/all.yml{.example,}`
+3. Edit `hosts.yml` and `group_vars/all.yml`
+
+== Kubeadm init
+
+----
+internal_ip="$(ifconfig ens10 | awk '/inet /{print $2}')"
+kubeadm init \
+  --pod-network-cidr=10.244.0.0/16 \
+  --apiserver-cert-extra-sans "$internal_ip"
+----
+
+== Deploy CNI, CCM, CSI
+
+On the master:
+
+----
+kubectl apply -f hcloud-config.yml
+kubectl apply -f https://raw.githubusercontent.com/hetznercloud/hcloud-cloud-controller-manager/master/deploy/v1.5.0.yaml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+----
+
+== Install FluxCD
+
+----
+export GHUSER=mhutter
+fluxctl install \
+  --git-user=${GHUSER} \
+  --git-email=${GHUSER}@users.noreply.github.com \
+  --git-url=git@github.com:${GHUSER}/flux-hcloud.git \
+  --namespace=flux | kubectl apply -f -
+----
+
+== License
+
+MIT (see link:LICENSE[LICENSE])
+
+---
+> https://hutter.io/[Manuel Hutter] -
+> GitHub https://github.com/mhutter[@mhutter] -
+> Twitter https://twitter.com/dratir[@dratir]
