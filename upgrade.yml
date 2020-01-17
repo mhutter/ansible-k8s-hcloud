@@ -1,0 +1,32 @@
+---
+- hosts: all
+  gather_facts: false
+  vars:
+    first_master: '{{ groups.masters[0] }}'
+    k8s_apt_version: '{{ kubernetes_version }}-00'
+  tasks:
+
+    - name: Drain node
+      command: 'kubectl drain {{ inventory_hostname }} --ignore-daemonsets'
+      delegate_to: '{{ first_master }}'
+
+    - name: Refresh package caches
+      apt:
+        update_cache: true
+
+    - name: Unhold Kubernetes components
+      command: 'apt-mark unhold kubelet kubectl'
+    - name: Upgrade Kubernetes components
+      package:
+        name: 'kubelet={{ k8s_apt_version }},kubectl={{ k8s_apt_version }}'
+    - name: Hold Kubernetes components
+      command: 'apt-mark hold kubelet kubectl'
+
+    - name: Upgrade OS packages
+      package:
+        name: '*'
+        state: latest
+
+    - name: Uncordon node
+      command: 'kubectl uncordon {{ inventory_hostname }}'
+      delegate_to: '{{ first_master }}'
