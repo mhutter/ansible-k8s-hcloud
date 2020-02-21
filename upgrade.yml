@@ -23,11 +23,6 @@
     - name: Hold Kubernetes components
       command: 'apt-mark hold kubelet kubectl'
 
-    - name: Upgrade OS packages
-      package:
-        name: '*'
-        state: latest
-
     - name: Uncordon node
       command: 'kubectl uncordon {{ inventory_hostname }}'
       delegate_to: '{{ first_master }}'
