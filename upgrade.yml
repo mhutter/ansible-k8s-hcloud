@@ -1,6 +1,7 @@
 ---
 - hosts: all
   gather_facts: false
+  serial: 1
   vars:
     first_master: '{{ groups.masters[0] }}'
     k8s_apt_version: '{{ kubernetes_version }}-00'
